@@ -1,0 +1,101 @@
+---
+- name: VMWare Object Deletion
+  gather_facts: False
+  vars_files:
+    - vcenter_vars.yml
+  hosts: localhost
+  tasks:
+    - name: Poweroff virtual machine name {{ vm_name }}
+      vmware_guest_powerstate:
+        name: "{{ vm_name }}"
+        hostname: "{{ vcenter_server }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        validate_certs: False
+        folder: "{{ folder }}"
+        state: powered-off
+   
+    - name: Delete a virtual machine name {{ vm_name }}
+      vmware_guest:
+        name: "{{ vm_name }}"
+        hostname: "{{ vcenter_server }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        validate_certs: False
+        folder: "{{ folder }}"
+        datacenter: "{{ datacenter }}"
+        state: absent
+      register: vm_result
+
+    - name: Assert that VM {{ vm_name }} is deleted
+      assert:
+        that:
+          - "vm_result.changed"
+
+    - name: Add ESXi {{ esxi_hostname }} to maintenance mode
+      vmware_maintenancemode:
+        validate_certs: False
+        hostname: "{{ vcenter_server }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        esxi_hostname: "{{ esxi_hostname }}"
+        state: present
+      register: host_result
+
+    - name: Assert that host {{ esxi_hostname }} is in maintenance mode
+      assert:
+        that:
+          - "host_result.changed"
+
+    - name: Delete an existing ESXi {{ esxi_hostname }}
+      vmware_host:
+        validate_certs: False
+        hostname: "{{ vcenter_server }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        datacenter_name: "{{ datacenter }}"
+        cluster_name: "{{ cluster }}"
+        esxi_hostname: "{{ esxi_hostname }}"
+        esxi_username: "{{ esxi_username }}"
+        esxi_password: "{{ esxi_password }}"
+        state: absent
+      register: host_result
+
+    - name: Assert that host is added
+      assert:
+        that:
+          - "host_result.changed"
+
+    - name: Delete a cluster {{ cluster }}
+      vmware_cluster:
+        validate_certs: False
+        hostname: "{{ vcenter_server }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        datacenter_name: "{{ datacenter }}"
+        cluster_name: "{{ cluster }}"
+        state: absent
+        enable_ha: no
+        enable_drs: yes
+        enable_vsan: no
+      register: cluster_result
+
+    - name: Assert that cluster {{ cluster }} is deleted
+      assert:
+        that:
+          - "cluster_result.changed"
+
+    - name: Delete a datacenter {{ datacenter }}
+      vmware_datacenter:
+        validate_certs: False
+        hostname: "{{ vcenter_server }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        datacenter_name: "{{ datacenter }}"
+        state: absent
+      register: datacenter_result
+
+    - name: Assert that datacenter {{ datacenter }} is deleted
+      assert:
+        that:
+          - "datacenter_result.changed"

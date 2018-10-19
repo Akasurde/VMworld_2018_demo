@@ -1,0 +1,4 @@
+*.retry
+.idea
+ansible.cfg
+inventory

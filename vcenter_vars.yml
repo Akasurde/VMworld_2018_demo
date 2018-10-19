@@ -1,0 +1,24 @@
+---
+# Global Settings
+- vcenter_server: 10.65.22.1
+- vcenter_user: administrator@vsphere.local
+- vcenter_pass: Esxi@123$%
+- datacenter: Asia-Datacenter1
+- cluster: Asia-Cluster1
+
+# ESXi settings
+- esxi_hostname: 10.76.33.6
+- esxi_username: root
+- esxi_password: esxi123
+
+# VM settings
+- vm_name: VM_168
+- template_name: ubuntu_t
+- datastore: ds_226_3
+- network: VM Network
+- folder: /Asia-Datacenter1/vm/
+- dns_server: 8.8.8.8
+
+# Snapshot settings
+- snapshot: fresh_installation
+

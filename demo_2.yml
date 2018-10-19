@@ -1,0 +1,49 @@
+---
+- name: Guest Creation
+  gather_facts: no
+  vars_files:
+    - vcenter_vars.yml
+  hosts: localhost
+  tasks:
+    - name: Clone a virtual machine {{ vm_name }} from existing template {{ template_name }}
+      vmware_guest:
+        name: "{{ vm_name }}"
+        template: "{{ template_name }}"
+        hostname: "{{ vcenter_server }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        validate_certs: no 
+        folder: "{{ folder }}"
+        datacenter: "{{ datacenter }}"
+        networks:
+          - name: "{{ network }}"
+            ip: 192.168.10.14
+            netmask: 255.255.255.0
+            gateway: 192.168.10.1
+        cluster: "{{ cluster }}"
+        customization:
+          dns_servers: "{{ dns_server }}"
+        wait_for_ip_address: yes
+      register: vm_result
+
+    - name: Assert that VM is created
+      assert:
+        that:
+          - "vm_result.changed"
+
+    - name: Create a virtual machine {{ vm_name }} snapshot name {{ snapshot }}
+      vmware_guest_snapshot:
+        name: "{{ vm_name }}"
+        hostname: "{{ vcenter_server }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_pass }}"
+        validate_certs: False
+        folder: "{{ folder }}"
+        datacenter: "{{ datacenter }}"
+        snapshot_name: "{{ snapshot }}"
+      register: snapshot_result
+
+    - name: Assert that VM snapshot is created
+      assert:
+        that:
+          - "snapshot_result.changed"
